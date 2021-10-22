@@ -44,6 +44,6 @@ v_min = np.nanmin(rad_velocity)
 
 #First attemption of histogram
 #Note: There is no meaning of the actual numbers here!
-n, bins, patches = plt.hist(rad_velocity, weights = HIMASS, bins=100)
-plt.savefig('test.png',format='png')
+n, bins, patches = plt.hist(rad_velocity, weights = HIMASS, bins=1000)
+plt.savefig('test1000.png',format='png')
 
