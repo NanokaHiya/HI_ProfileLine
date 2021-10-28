@@ -83,5 +83,5 @@ bins=int((v_max-v_min)/delta_v)
 ######################################################################################################
 #Save histogram as PNG file
 #TODO: tags
-n, bins, patches = plt.hist(fluxDensity, weights = MassHI, bins=300)
+n, bins, patches = plt.hist(LOSVelocity, weights = fluxDensity, bins=300)
 plt.savefig('fluxDensity.png',format='png')
