@@ -4,13 +4,20 @@ import h5py
 import numpy as np
 import illustris_python as il
 import matplotlib.pyplot as plt
+import sys
 
 #TODO: take redshift into account!
 ######################################################################################################
 #Loading information
-subhalo_id = 43
-snapNum = 99
+if len(sys.argv)!=3:
+    raise ValueError('Expect argv = 3. Please provide snapNum and subhalo id')
+try:
+    snapNum = int(sys.argv[1])
+    subhalo_id = int(sys.argv[2])
+except:
+    print('argv value error')
 basePath = '/public/furendeng/TNG-100/output'
+output = str('snap'+str(snapNum)+'_subhalo'+str(subhalo_id)+'.png')
 ######################################################################################################
 
 #Load constants
@@ -87,4 +94,4 @@ bins=int((v_max-v_min)/delta_v)
 #Save histogram as PNG file
 #TODO: tags
 n, bins, patches = plt.hist(LOSVelocity, weights = fluxDensity, bins=300)
-plt.savefig('43.png',format='png')
+plt.savefig(output,format='png')
