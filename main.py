@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 #TODO: take redshift into account!
 ######################################################################################################
 #Loading information
-subhalo_id = 42
+subhalo_id = 43
 snapNum = 99
 basePath = '/public/furendeng/TNG-100/output'
 ######################################################################################################
@@ -18,28 +18,29 @@ fields = ['Velocities','CenterOfMass','NeutralHydrogenAbundance','GFM_Metals','M
 partType = 0 #Gas particle
 delta_v = 1.4 #As compatible resolution of Arecibo, unit = km/s
 
-def snapHeader(basePath,snapNum):
-    #Load Header from first chunk
+def snapInfo():
+    #Load snapshot Header from first chunk
     #Copied from il.snapshot.loadSubset()
     #Get cosmological constants
     with h5py.File(il.snapshot.snapPath(basePath, snapNum),'r') as f:
         header = dict(f['Header'].attrs.items())
     return header
 
-sHeader = snapHeader(basePath,snapNum)
-h = sHeader['HubbleParam']
+snapInfo = snapInfo()
+h = snapInfo['HubbleParam']
+z = snapInfo['Redshift']
 #print(sHeader)
-z = sHeader['Redshift']
 
-def luminosityDis():
+def groupcatInfo():
     #Read subhalo position from groupcat
-    #Return luminosity distance in Mpc
+    #Return luminosity distance in Mpc and subhalo velocity in km/s
     subhalo_g = il.groupcat.loadSingle(basePath, snapNum, subhaloID=subhalo_id)
     #subhalo center position [Mpc]
     subhaloCM=subhalo_g['SubhaloCM']*h*0.001
-    return np.linalg.norm(subhaloCM,2)
+    return np.linalg.norm(subhaloCM,2),subhalo_g['SubhaloVel']
     
-D = luminosityDis()
+D, subhaloVel = groupcatInfo()
+#print(subhaloVel)
 
 ######################################################################################################
 
@@ -48,6 +49,8 @@ def LOSVelocity():
     #Takes velocities onto centerofmass direction to get LOS velocity
     #Return array shape (N,) with unit km/s
     CM_km = subhalo['CenterOfMass']*3.086*np.power(10,16)*h
+    #CM_km = []
+    #CM_km.append(
     upper = (subhalo['Velocities']*CM_km).sum(1)
     lower = np.sqrt((CM_km*CM_km).sum(1))
     return np.transpose(upper/lower)
@@ -84,4 +87,4 @@ bins=int((v_max-v_min)/delta_v)
 #Save histogram as PNG file
 #TODO: tags
 n, bins, patches = plt.hist(LOSVelocity, weights = fluxDensity, bins=300)
-plt.savefig('fluxDensity.png',format='png')
+plt.savefig('43.png',format='png')
