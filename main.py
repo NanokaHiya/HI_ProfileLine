@@ -24,7 +24,6 @@ output = str('snap'+str(snapNum)+'_subhalo'+str(subhalo_id)+'.png')
 fields = ['Velocities','CenterOfMass','NeutralHydrogenAbundance','GFM_Metals','Masses']
 partType = 0 #Gas particle
 delta_v = 1.4 #As compatible resolution of Arecibo, unit = km/s
-a=1
 def snapInfo():
     #Load snapshot Header from first chunk
     #Copied from il.snapshot.loadSubset()
@@ -36,7 +35,7 @@ def snapInfo():
 snapInfo = snapInfo()
 h = snapInfo['HubbleParam']
 z = snapInfo['Redshift']
-#print(sHeader)
+a = snapInfo['Time']
 
 def groupcatInfo():
     #Read subhalo position from groupcat
@@ -79,6 +78,8 @@ subhalo = il.snapshot.loadSubhalo(basePath, snapNum, subhalo_id, partType, field
 MassHI = MassHI()
 LOSVelocity = LOSVelocity()
 print('LOSVelocity=',LOSVelocity)
+bins = int((np.nanmax(LOSVelocity) - np.nanmin(LOSVelocity))/delta_v)
+print('bins=',bins)
 fluxDensity = fluxDensity(MassHI,D)
 
 '''
@@ -95,5 +96,5 @@ bins=int((v_max-v_min)/delta_v)
 ######################################################################################################
 #Save histogram as PNG file
 #TODO: tags
-n, bins, patches = plt.hist(LOSVelocity, weights = fluxDensity, bins=300)
+n, bins, patches = plt.hist(LOSVelocity, weights = fluxDensity, bins=bins)
 plt.savefig(output,format='png')
