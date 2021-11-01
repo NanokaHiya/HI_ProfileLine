@@ -40,7 +40,8 @@ z = snapInfo['Redshift']
 
 def groupcatInfo():
     #Read subhalo position from groupcat
-    #Return luminosity distance in Mpc and subhalo velocity in km/s
+    #Return: 1. luminosity distance in Mpc and subhalo velocity in km/s
+	#		 2. Peculiar velocity of group in km/s
     subhalo_g = il.groupcat.loadSingle(basePath, snapNum, subhaloID=subhalo_id)
     #subhalo center position [Mpc]
     subhaloCM=subhalo_g['SubhaloCM']*h*0.001
@@ -55,7 +56,7 @@ def LOSVelocity():
     #TODO: check why returning always positive velocity!
     #Takes velocities onto centerofmass direction to get LOS velocity
     #Return array shape (N,) with unit km/s
-    CM_km = subhalo['CenterOfMass']*3.086*np.power(10,16)*h
+    CM_km = subhalo['CenterOfMass']*3.086*np.power(10,16)*h-subhaloVel
     #CM_km = []
     #CM_km.append(
     upper = (subhalo['Velocities']*CM_km).sum(1)
