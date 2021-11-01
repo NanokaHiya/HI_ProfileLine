@@ -24,7 +24,7 @@ output = str('snap'+str(snapNum)+'_subhalo'+str(subhalo_id)+'.png')
 fields = ['Velocities','CenterOfMass','NeutralHydrogenAbundance','GFM_Metals','Masses']
 partType = 0 #Gas particle
 delta_v = 1.4 #As compatible resolution of Arecibo, unit = km/s
-
+a=1
 def snapInfo():
     #Load snapshot Header from first chunk
     #Copied from il.snapshot.loadSubset()
@@ -48,7 +48,7 @@ def groupcatInfo():
     return np.linalg.norm(subhaloCM,2),subhalo_g['SubhaloVel']
     
 D, subhaloVel = groupcatInfo()
-#print(subhaloVel)
+print('subhaloVel=',subhaloVel)
 
 ######################################################################################################
 
@@ -56,10 +56,10 @@ def LOSVelocity():
     #TODO: check why returning always positive velocity!
     #Takes velocities onto centerofmass direction to get LOS velocity
     #Return array shape (N,) with unit km/s
-    CM_km = subhalo['CenterOfMass']*3.086*np.power(10,16)*h-subhaloVel
+    CM_km = subhalo['CenterOfMass']*3.086*np.power(10,16)*h
     #CM_km = []
     #CM_km.append(
-    upper = (subhalo['Velocities']*CM_km).sum(1)
+    upper = ((np.sqrt(a)*subhalo['Velocities']-subhaloVel)*CM_km).sum(1)
     lower = np.sqrt((CM_km*CM_km).sum(1))
     return np.transpose(upper/lower)
 
@@ -78,6 +78,7 @@ def fluxDensity(MassHI,D):
 subhalo = il.snapshot.loadSubhalo(basePath, snapNum, subhalo_id, partType, fields)
 MassHI = MassHI()
 LOSVelocity = LOSVelocity()
+print('LOSVelocity=',LOSVelocity)
 fluxDensity = fluxDensity(MassHI,D)
 
 '''
