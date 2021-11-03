@@ -6,10 +6,11 @@ import illustris_python as il
 import matplotlib.pyplot as plt
 import sys
 import os
+import astropy
+from astropy.cosmology import LambdaCDM
 
-#TODO: take redshift into account!
 ######################################################################################################
-#Loading information
+#Loading information & Checking
 if len(sys.argv)!=3:
     raise ValueError("Expect argv = 3. Please provide snapNum and subhalo id")
 try:
@@ -27,6 +28,18 @@ fields = ['Velocities','CenterOfMass','NeutralHydrogenAbundance','GFM_Metals','M
 partType = 0 #Gas particle
 delta_v = 1.4 #As compatible resolution of Arecibo, unit = km/s
 
+#Load subhalo info from snapshot
+subhalo = il.snapshot.loadSubhalo(basePath, snapNum, subhalo_id, partType, fields)
+
+#Check if this subhalo has no gas
+if subhalo['count']==0:
+    try:
+        f = open(str(outputName + '_NO_GAS'),'x')
+        f.close()
+    except FileExistsError:
+        pass
+    raise ValueError('Requested subhalo has no gas particle!')
+
 def snapInfo():
     #Load snapshot Header from first chunk
     #Copied from il.snapshot.loadSubset()
@@ -35,27 +48,40 @@ def snapInfo():
         header = dict(f['Header'].attrs.items())
     return header
 
+#Set up cosmology
 snapInfo = snapInfo()
 #print(snapInfo)
 h = snapInfo['HubbleParam']
+H0 = 100*h
+#print(h0)
 z = snapInfo['Redshift']
 a = snapInfo['Time']
+Omega0 = snapInfo['Omega0']
+OmegaLambda = snapInfo['OmegaLambda']
+OmegaBaryon = snapInfo['OmegaBaryon']
+#cosmo = astropy.cosmology.FLRW(H0 = H0,Om0 = Omega0,Ode0 = OmegaLambda,Ob0 = OmegaBaryon)
+#Get luminosity distance
+cosmo = LambdaCDM(H0 = H0,Om0 = Omega0,Ode0 = OmegaLambda)
+D = cosmo.luminosity_distance(z)
+print(D)
 
 def groupcatInfo():
     #Read subhalo position from groupcat
     #Return: 1. luminosity distance in Mpc and subhalo velocity in km/s
     #        2. Peculiar velocity of group in km/s
     subhalo_g = il.groupcat.loadSingle(basePath, snapNum, subhaloID=subhalo_id)
-    print(subhalo_g)
+    #print(subhalo_g)
     #subhalo center position [Mpc]
     subhaloCM=subhalo_g['SubhaloCM']*h*0.001
-    return np.linalg.norm(subhaloCM,2),subhalo_g['SubhaloVel']
+    #Wrong luminosity distance!
+    #return np.linalg.norm(subhaloCM,2),
+    return subhalo_g['SubhaloVel']
     
-D, subhaloVel = groupcatInfo()
-print('subhaloVel=',subhaloVel)
+subhaloVel = groupcatInfo()
+#print('subhaloVel=',subhaloVel)
 
 ######################################################################################################
-
+#Calculation utilities
 def LOSVelocity():
     #Takes velocities onto centerofmass direction to get LOS velocity
     #Return array shape (N,) with unit km/s
@@ -73,20 +99,10 @@ def MassHI():
 def fluxDensity(MassHI,D):
     #convert MassHI into flux density (Catinella et al. 2010)
     #Set N(v)=0
-    return MassHI/(D*D*2.356*np.power(10,5)*delta_v)
+    #Unit is mJy
+    return MassHI*1000*(1+z)/(D*D*2.356*np.power(10,5)*delta_v)
 
 ######################################################################################################
-subhalo = il.snapshot.loadSubhalo(basePath, snapNum, subhalo_id, partType, fields)
-
-#Check if this subhalo has no gas
-if subhalo['count']==0:
-    try:
-        f = open(str(outputName + '_ERR'),'x')
-        f.close()
-    except FileExistsError:
-        pass
-    raise ValueError('Requested subhalo has no gas particle!')
-
 
 MassHI = MassHI()
 LOSVelocity = LOSVelocity()
@@ -94,17 +110,6 @@ print('LOSVelocity=',LOSVelocity)
 bins = int((np.nanmax(LOSVelocity) - np.nanmin(LOSVelocity))/delta_v)
 print('bins=',bins)
 fluxDensity = fluxDensity(MassHI,D)
-
-'''
-Depreciated
-rad_velocity = LOSVelocity(subhalo42['Velocities'],subhalo42['CenterOfMass'])
-HIMASS = MassHI(subhalo42['NeutralHydrogenAbundance'],subhalo42['GFM_Metals'],subhalo42['Masses'])
-fluxDen = fluxDensity(HIMASS,subhalo42['CenterOfMass'])
-v_max = np.nanmax(rad_velocity)
-v_min = np.nanmin(rad_velocity)
-bins=int((v_max-v_min)/delta_v)
-#print(bins)
-'''
 
 ######################################################################################################
 #Save histogram as PNG file
