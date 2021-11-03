@@ -5,25 +5,28 @@ import numpy as np
 import illustris_python as il
 import matplotlib.pyplot as plt
 import sys
+import os
 
 #TODO: take redshift into account!
 ######################################################################################################
 #Loading information
 if len(sys.argv)!=3:
-    raise ValueError('Expect argv = 3. Please provide snapNum and subhalo id')
+    raise ValueError("Expect argv = 3. Please provide snapNum and subhalo id")
 try:
     snapNum = int(sys.argv[1])
     subhalo_id = int(sys.argv[2])
 except:
     print('argv value error')
 basePath = '/public/furendeng/TNG-100/output'
-output = str('snap'+str(snapNum)+'_subhalo'+str(subhalo_id)+'.png')
+outputName = str('snap'+str(snapNum)+'_subhalo'+str(subhalo_id).zfill(7))
+output = outputName + '.png'
 ######################################################################################################
 
 #Load constants
 fields = ['Velocities','CenterOfMass','NeutralHydrogenAbundance','GFM_Metals','Masses']
 partType = 0 #Gas particle
 delta_v = 1.4 #As compatible resolution of Arecibo, unit = km/s
+
 def snapInfo():
     #Load snapshot Header from first chunk
     #Copied from il.snapshot.loadSubset()
@@ -33,6 +36,7 @@ def snapInfo():
     return header
 
 snapInfo = snapInfo()
+#print(snapInfo)
 h = snapInfo['HubbleParam']
 z = snapInfo['Redshift']
 a = snapInfo['Time']
@@ -40,8 +44,9 @@ a = snapInfo['Time']
 def groupcatInfo():
     #Read subhalo position from groupcat
     #Return: 1. luminosity distance in Mpc and subhalo velocity in km/s
-	#		 2. Peculiar velocity of group in km/s
+    #        2. Peculiar velocity of group in km/s
     subhalo_g = il.groupcat.loadSingle(basePath, snapNum, subhaloID=subhalo_id)
+    print(subhalo_g)
     #subhalo center position [Mpc]
     subhaloCM=subhalo_g['SubhaloCM']*h*0.001
     return np.linalg.norm(subhaloCM,2),subhalo_g['SubhaloVel']
@@ -52,12 +57,9 @@ print('subhaloVel=',subhaloVel)
 ######################################################################################################
 
 def LOSVelocity():
-    #TODO: check why returning always positive velocity!
     #Takes velocities onto centerofmass direction to get LOS velocity
     #Return array shape (N,) with unit km/s
     CM_km = subhalo['CenterOfMass']*3.086*np.power(10,16)*h
-    #CM_km = []
-    #CM_km.append(
     upper = ((np.sqrt(a)*subhalo['Velocities']-subhaloVel)*CM_km).sum(1)
     lower = np.sqrt((CM_km*CM_km).sum(1))
     return np.transpose(upper/lower)
@@ -75,6 +77,17 @@ def fluxDensity(MassHI,D):
 
 ######################################################################################################
 subhalo = il.snapshot.loadSubhalo(basePath, snapNum, subhalo_id, partType, fields)
+
+#Check if this subhalo has no gas
+if subhalo['count']==0:
+    try:
+        f = open(str(outputName + '_ERR'),'x')
+        f.close()
+    except FileExistsError:
+        pass
+    raise ValueError('Requested subhalo has no gas particle!')
+
+
 MassHI = MassHI()
 LOSVelocity = LOSVelocity()
 print('LOSVelocity=',LOSVelocity)
