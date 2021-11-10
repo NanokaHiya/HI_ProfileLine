@@ -21,6 +21,8 @@ except:
 basePath = '/public/furendeng/TNG-100/output'
 outputName = str('snap'+str(snapNum)+'_subhalo'+str(subhalo_id).zfill(7))
 output = outputName + '.png'
+dir_name = 'Snap'+str(snapNum)+'/'
+os.mkdir(dir_name)
 ######################################################################################################
 
 #Load constants
@@ -34,7 +36,7 @@ subhalo = il.snapshot.loadSubhalo(basePath, snapNum, subhalo_id, partType, field
 #Check if this subhalo has no gas
 if subhalo['count']==0:
     try:
-        f = open(str(outputName + '_NO_GAS'),'x')
+        f = open(dir_name+str(outputName + '_NO_GAS'),'x')
         f.close()
     except FileExistsError:
         pass
@@ -56,6 +58,10 @@ H0 = 100*h
 #print(h0)
 z = snapInfo['Redshift']
 a = snapInfo['Time']
+#Previously I use AstroPy to calculate luminosity distance, however I believe redshift here
+#is a time indicator instead of the distance of light traveled. Gas particles are always
+#at their "current" state.
+"""
 Omega0 = snapInfo['Omega0']
 OmegaLambda = snapInfo['OmegaLambda']
 OmegaBaryon = snapInfo['OmegaBaryon']
@@ -63,7 +69,7 @@ OmegaBaryon = snapInfo['OmegaBaryon']
 #Get luminosity distance
 cosmo = LambdaCDM(H0 = H0,Om0 = Omega0,Ode0 = OmegaLambda)
 D = cosmo.luminosity_distance(z)
-print(D)
+"""
 
 def groupcatInfo():
     #Read subhalo position from groupcat
@@ -73,11 +79,9 @@ def groupcatInfo():
     #print(subhalo_g)
     #subhalo center position [Mpc]
     subhaloCM=subhalo_g['SubhaloCM']*h*0.001
-    #Wrong luminosity distance!
-    #return np.linalg.norm(subhaloCM,2),
-    return subhalo_g['SubhaloVel']
+    return np.linalg.norm(subhaloCM,2),subhalo_g['SubhaloVel']
     
-subhaloVel = groupcatInfo()
+D,subhaloVel = groupcatInfo()
 #print('subhaloVel=',subhaloVel)
 
 ######################################################################################################
@@ -114,5 +118,8 @@ fluxDensity = fluxDensity(MassHI,D)
 ######################################################################################################
 #Save histogram as PNG file
 #TODO: tags
-n, bins, patches = plt.hist(LOSVelocity, weights = fluxDensity, bins=bins)
+n, bins, patches = plt.hist(LOSVelocity, weights = fluxDensity, bins=bins, histtype='step')
+plt.title('Snapshot '+str(snapNum)+' Subhalo '+str(subhalo_id))
+plt.xlabel('Velocity')
+plt.ylabel('FluxDen')
 plt.savefig(output,format='png')
