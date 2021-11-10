@@ -6,8 +6,8 @@ import illustris_python as il
 import matplotlib.pyplot as plt
 import sys
 import os
-import astropy
-from astropy.cosmology import LambdaCDM
+#import astropy
+#from astropy.cosmology import LambdaCDM
 
 ######################################################################################################
 #Loading information & Checking
@@ -22,7 +22,10 @@ basePath = '/public/furendeng/TNG-100/output'
 outputName = str('snap'+str(snapNum)+'_subhalo'+str(subhalo_id).zfill(7))
 output = outputName + '.png'
 dir_name = 'Snap'+str(snapNum)+'/'
-os.mkdir(dir_name)
+try:
+    os.mkdir(dir_name)
+except:
+    pass
 ######################################################################################################
 
 #Load constants
@@ -82,7 +85,6 @@ def groupcatInfo():
     return np.linalg.norm(subhaloCM,2),subhalo_g['SubhaloVel']
     
 D,subhaloVel = groupcatInfo()
-#print('subhaloVel=',subhaloVel)
 
 ######################################################################################################
 #Calculation utilities
@@ -122,4 +124,4 @@ n, bins, patches = plt.hist(LOSVelocity, weights = fluxDensity, bins=bins, histt
 plt.title('Snapshot '+str(snapNum)+' Subhalo '+str(subhalo_id))
 plt.xlabel('Velocity')
 plt.ylabel('FluxDen')
-plt.savefig(output,format='png')
+plt.savefig(dir_name+output,format='png')
