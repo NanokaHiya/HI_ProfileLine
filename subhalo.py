@@ -1,3 +1,4 @@
+#subhalo.py
 #Methods to generate HI profile line for a given subhalo from given direction
 #Haiyin Song, 2021/11
 import h5py
@@ -51,4 +52,8 @@ class subhalo:
         return r, theta, phi
 
     def LOSVelocity(self):
-        #TODO: 
+        #TODO: I'm not sure if I should keep this function but I'll let it be here for a while
+
+
+    def drawPlot(self):
+        #TODO: should save figure in subdir

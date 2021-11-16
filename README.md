@@ -2,6 +2,10 @@
 Plot a HI profile line from TNG-100 simulation
 
 # Logs
+## 11/6/2021
+Reconstructing.
+Create class structure for subhalo reading/ploting.
+Utility for coordinate system change
 ## 11/3/2021
 Reason for last error: no gas particle exist in some subhalos. Add check if gas exists.
 ## 11/1/2021
