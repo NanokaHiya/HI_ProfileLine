@@ -4,6 +4,8 @@ Plot a HI profile line from TNG-100 simulation
 # Logs
 ## 11/6/2021
 Reconstructing.
+Looks like currently there is no need for coordinate class.
+
 Create class structure for subhalo reading/ploting.
 Utility for coordinate system change
 ## 11/3/2021
