@@ -2,7 +2,13 @@
 Plot a HI profile line from TNG-100 simulation
 
 # Logs
-## 11/6/2021
+## 11/18/2021
+One-key generate 32 + 1 plot for a single subhalo.
+
+## 11/17/2021
+Main implentation of class subhalo completed.
+
+## 11/16/2021
 Reconstructing.
 Looks like currently there is no need for coordinate class.
 
