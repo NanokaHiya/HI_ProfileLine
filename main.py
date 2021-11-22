@@ -22,30 +22,36 @@ mysubhalo = subhalo.subhalo(snapNum,subhalo_id)
 time1 = datetime.now()
 print('Loading finished, time elapsed is '+str(time1-time0))
 
-print('Plotting...(Total 32)')
-thetaArr = np.linspace(0,np.pi,num=4,endpoint=False)
+print('Plotting...(Total 26)')
+thetaArr = np.linspace(0,np.pi,num=5,endpoint=True)
 phiArr = np.linspace(0,2*np.pi,num=8,endpoint=False)
 
 
-def get32Pics(flag):
+def get26Pics(flag):
     #if flag == False, all 32 line will be in a same plot
     runTime = datetime.now()
     counter = 0
     for i in thetaArr:
         for j in phiArr:
-            mysubhalo.drawPlot(i,j,flag)
             counter += 1
-            print(str(counter) + ' of 32 finished. Time elapsed is ' + str(datetime.now()-runTime))
+            print(str(counter)+ ' of 26: theta = '+str("{:.2f}".format(i))+', phi = '+str("{:.2f}".format(j)) )
+            mysubhalo.drawPlot(i,j,flag)
+            #Time elapsed is ' + str(datetime.now()-runTime))
             runTime = datetime.now()
+            if (i == 0)or(i == np.pi):
+                break
+    '''
     if flag == True:
         print('All 32 fishined. Total time: ' + str(datetime.now()-time0))
     else:
         print('Single finished. Total time: ' + str(datetime.now()-time0))
+    '''
     return
 
 if __name__ == "__main__":
-    get32Pics(True)
-    get32Pics(False)
+    get26Pics(True)
+    #get32Pics(False)
+    #mysubhalo.drawPlot(0,0, center = False)
     print('Job finished')
 
 
