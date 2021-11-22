@@ -50,8 +50,9 @@ def get26Pics(flag):
 
 if __name__ == "__main__":
     get26Pics(True)
-    #get32Pics(False)
-    #mysubhalo.drawPlot(0,0, center = False)
+    #get26Pics(False)
+    #mysubhalo.drawPlot(0,0)
+    #print(mysubhalo.obsPoint)
     print('Job finished')
 
 
