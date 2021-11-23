@@ -48,12 +48,20 @@ def get26Pics(flag):
     '''
     return
 
+def checkRatio(theta = np.pi/2):
+    phi_12 = np.linspace(0, 2*np.pi, num = 12, endpoint = False)
+    counter = 0
+    for i in phi_12:
+        counter += 1
+        print(str(counter) + ' of 12: theta = ' + str(theta) + ' , phi = ' + str(i))
+        mysubhalo.drawPlot(theta, i, ratioCheck = True)
+    mysubhalo.drawRatioPlot()
+
 if __name__ == "__main__":
     get26Pics(True)
     #get26Pics(False)
-    #mysubhalo.drawPlot(0,0)
-    #print(mysubhalo.obsPoint)
-    print('Job finished')
+    checkRatio()
+    print('Job finished. Time elapsed: '+ str(datetime.now()-time0))
 
 
 

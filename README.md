@@ -1,7 +1,19 @@
 # HI_ProfileLine
 Plot a HI profile line from TNG-100 simulation
 
+# TODO
+-[] Luminosity distance fix: single fixed value -> value for each particle
+-[] LOSVector fix: similar to lumnosity distance fix
+-[] Calculate the rotational matrix of subhalo
+
 # Logs
+
+## 11/22/2021
+Profile line -> HI simulate mass function complete
+
+## 11/19/2021
+Generate 26 plot instead of 33 plot (better mapping)
+
 ## 11/18/2021
 One-key generate 32 + 1 plot for a single subhalo.
 

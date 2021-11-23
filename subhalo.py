@@ -98,7 +98,7 @@ class subhalo:
         self.kpcD = np.linalg.norm(self.subhaloCM,2)
         #Luminosity distance, unit Mpc
         self.D = np.linalg.norm(self.subhaloCM*self.h/1000,2) 
-
+        self.ratioDict = {}
 
     #def luminosityDistance(self):
         #currently return simply distance from center of comoving coord
@@ -121,9 +121,10 @@ class subhalo:
         self.__obsPoint()
         self.LOSVector = (self.subhaloCM-self.obsPoint)*3.086*np.power(10,16)*self.h*1000
         if center == True:
-            self.LOSVelocity = ((((np.sqrt(self.a)*self.snapData['Velocities']-self.subhaloVel)*self.LOSVector).sum(1))/(np.sqrt((self.LOSVector*self.LOSVector).sum(0))))
+            #sqrt(self.a)
+            self.LOSVelocity = ((((np.sqrt(1)*self.snapData['Velocities']-self.subhaloVel)*self.LOSVector).sum(1))/(np.sqrt((self.LOSVector*self.LOSVector).sum(0))))
         else:    
-            self.LOSVelocity = ((((np.sqrt(self.a)*self.snapData['Velocities'])*self.LOSVector).sum(1))/(np.sqrt((self.LOSVector*self.LOSVector).sum(0))))
+            self.LOSVelocity = ((((np.sqrt(1)*self.snapData['Velocities'])*self.LOSVector).sum(1))/(np.sqrt((self.LOSVector*self.LOSVector).sum(0))))
 
     def __MassHI(self):
         #unit: M_sun
@@ -140,7 +141,7 @@ class subhalo:
         self.nBins = int((np.nanmax(self.LOSVelocity) - np.nanmin(self.LOSVelocity))/self.delta_v)
 
 
-    def drawPlot(self, theta = 0, phi = 0, clean = True, center = True):
+    def drawPlot(self, theta = 0, phi = 0, clean = True, center = True, ratioCheck = False):
         self.theta = theta
         self.phi = phi
         self.__LOSVelocity(center)
@@ -171,16 +172,12 @@ class subhalo:
         if clean == True:
             self.actual_delta_v = (self.bins[-1]-self.bins[0])/self.nBins
             self.simu_real_mass_ratio = np.sum(self.n/1000)*self.actual_delta_v*2.356*np.power(10,5)*self.D*self.D/self.actualHIMass
+            print(self.simu_real_mass_ratio)
             plt.annotate(r'$\frac{M_{simu}}{M_{real}} = $'+str(self.simu_real_mass_ratio), xy=(0.05, 0.85), xycoords='axes fraction')
-
-        #self.simuMass = 0
-        #for i in range(self.nBins-1):
-            #note unit for bins is mJy so there is a unit conversion
-        #    self.simuMass += abs((self.n[i+1] - self.n[i]) * self.bins[i]/1000)
-        #Now simuMass is simply flux
-        #self.simuMass = 2.356 * np.power(10,5) *self.D *self.D *self.simuMass
-        #print(self.simuMass/self.actualHIMass)
-
+            if ratioCheck == True:
+                #Warning: ratio check should only be used with constant theta!
+                self.ratioDict[str(self.phi)] = self.simu_real_mass_ratio*100-100
+                self.ratioCheckTheta = self.theta
         
         #fig, axs = plt.subplots(2, 1)
         #self.n, self.bins, self.patches = axs[0].hist(self.LOSVelocity, weights = self.fluxDen, bins=self.bins, histtype='step')
@@ -196,4 +193,16 @@ class subhalo:
         plt.savefig(self.dir_name +'/'+ self.outputName, format='png')
         if clean == True:
             plt.clf()
+
+    def drawRatioPlot(self):
+        self.ratioNames = ['0',r'$\frac{\pi}{6}$',r'$\frac{\pi}{3}$',r'$\frac{\pi}{2}$',r'$\frac{2\pi}{3}$',r'$\frac{5\pi}{6}$',r'$\pi$', r'$\frac{7\pi}{6}$',r'$\frac{4\pi}{3}$',r'$\frac{3\pi}{2}$',r'$\frac{5\pi}{3}$',r'$\frac{11\pi}{6}$']
+        self.ratioData = list(self.ratioDict.values())
+        fig, ax = plt.subplots()
+        ax.bar(self.ratioNames,self.ratioData)
+        #ax.set_xlable('$/phi$') 
+        ax.set_title(r'Percentage difference between $M_{simu}$ and $M_{real}$ at $\theta = $'+str("{:.2f}".format(self.ratioCheckTheta)))
+        plt.savefig(self.dir_name + '/ratio.png', format = 'png')
+        plt.clf()
+
+
 
