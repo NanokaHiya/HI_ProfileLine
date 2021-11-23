@@ -2,9 +2,9 @@
 Plot a HI profile line from TNG-100 simulation
 
 # TODO
--[] Luminosity distance fix: single fixed value -> value for each particle
--[] LOSVector fix: similar to lumnosity distance fix
--[] Calculate the rotational matrix of subhalo
+- [] Luminosity distance fix: single fixed value -> value for each particle
+- [] LOSVector fix: similar to lumnosity distance fix
+- [] Calculate the rotational matrix of subhalo
 
 # Logs
 
