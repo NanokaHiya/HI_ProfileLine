@@ -8,6 +8,11 @@ Plot a HI profile line from TNG-100 simulation
 
 # Logs
 
+## 11/23/2021
+Luminosity distance & LOSVector now is different for every gas particle.
+However, the outcome is not ideal or, I would say totally opposite to anticipation.
+Debugging...
+
 ## 11/22/2021
 Profile line -> HI simulate mass function complete
 

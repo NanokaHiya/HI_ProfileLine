@@ -61,6 +61,7 @@ class subhalo:
     """Read given subhalo from a snapshot & corresponding group catalog.
        Generate HI profile line looking from (D,theta,phi) from the subhalo center.
     """
+    
     basePath = '/public/furendeng/TNG-100/output'
     delta_v = 1.4 #unit: km/s
 
@@ -94,16 +95,22 @@ class subhalo:
         self.subhalo_g = il.groupcat.loadSingle(self.basePath, self.snapNum, subhaloID=self.subhalo_id)
         self.subhaloCM = self.subhalo_g['SubhaloCM']     #unit: ckpc/h
         self.subhaloVel = self.subhalo_g['SubhaloVel']   #unit: km/s
-        #Luminosity distance, in kpc/h unit
+        #Observation distance, which is distance to the center of subhalo,  in kpc/h unit
+        #This should NOT be used as Luminosity distance
         self.kpcD = np.linalg.norm(self.subhaloCM,2)
-        #Luminosity distance, unit Mpc
-        self.D = np.linalg.norm(self.subhaloCM*self.h/1000,2) 
+        #self.kpcD = 1000
         self.ratioDict = {}
+        print('Subhalo CM: '+str(self.subhaloCM))
 
-    #def luminosityDistance(self):
+    def __luminosityDistance(self):
         #currently return simply distance from center of comoving coord
         #return luminosity distance in Mpc
         #TODO: define a luminosity distance by the size of this subhalo
+        #self.D = np.linalg.norm(self.snapData['Velocities']-self.obsPoint, axis = 1)*self.h/1000
+        self.D = np.linalg.norm(self.obsPoint - self.snapData['Velocities'], axis = 1)*self.h/1000
+        print(self.obsPoint - self.snapData['Velocities'])
+        print(self.D*1000/self.h)
+        print('Average luminosity distance: {:.2f}'.format(np.average(self.D)*1000/(self.h*self.kpcD)))
 
 
     def __obsPoint(self):
@@ -111,20 +118,21 @@ class subhalo:
         #spherical->recentered->comoving
         #unit is ckpc/h
         self.obsPoint = np.add(self.subhaloCM,[self.kpcD * np.cos(self.phi) * np.sin(self.theta),self.kpcD * np.sin(self.phi) * np.sin(self.theta),self.kpcD * np.cos(self.theta)])
+        print('obsPoint: ' + str(self.obsPoint))
 
     def __LOSVelocity(self, center = True):
         #self.LOSVector is the new vector pointing from obsPoint to the subhaloCM (approximate)
         #When center == True, total subhalo velocity is subtracted from particle velocity
         #For calculating the flux, use center = False
         #All unit here should be km/s
-        #TODO: check sum function here
-        self.__obsPoint()
-        self.LOSVector = (self.subhaloCM-self.obsPoint)*3.086*np.power(10,16)*self.h*1000
+
+        self.LOSVector = (self.snapData['Velocities']-self.obsPoint)*3.086*np.power(10,16)*self.h*1000
+        self.absLOSVector = np.linalg.norm(self.LOSVector, axis = 1)
         if center == True:
             #sqrt(self.a)
-            self.LOSVelocity = ((((np.sqrt(1)*self.snapData['Velocities']-self.subhaloVel)*self.LOSVector).sum(1))/(np.sqrt((self.LOSVector*self.LOSVector).sum(0))))
+            self.LOSVelocity = (((np.sqrt(self.a)*self.snapData['Velocities']-self.subhaloVel)*self.LOSVector).sum(1))/self.absLOSVector
         else:    
-            self.LOSVelocity = ((((np.sqrt(1)*self.snapData['Velocities'])*self.LOSVector).sum(1))/(np.sqrt((self.LOSVector*self.LOSVector).sum(0))))
+            self.LOSVelocity = (((np.sqrt(self.a)*self.snapData['Velocities'])*self.LOSVector).sum(1))/self.absLOSVector
 
     def __MassHI(self):
         #unit: M_sun
@@ -133,6 +141,8 @@ class subhalo:
 
     def __fluxDensity(self):
         #unit: mJy
+        self.__MassHI()
+        self.__luminosityDistance()
         self.fluxDen = self.MassHI*1000*(1+self.z)/(self.D*self.D*2.356*np.power(10,5)*self.delta_v)
 
 
@@ -144,11 +154,12 @@ class subhalo:
     def drawPlot(self, theta = 0, phi = 0, clean = True, center = True, ratioCheck = False):
         self.theta = theta
         self.phi = phi
+        self.__obsPoint()
         self.__LOSVelocity(center)
-        self.__MassHI()
         self.__fluxDensity()
         self.__bins()
 
+        print('Doing theta = {:2f}, phi = {:2f}'.format(self.theta,self.phi))
         self.n, self.bins, self.patches = plt.hist(self.LOSVelocity, weights = self.fluxDen, bins=self.nBins, histtype='step')
         #Title and file name
         if clean == False:
@@ -167,16 +178,14 @@ class subhalo:
         plt.ylabel('FluxDen / $mJy$')
         
         #Calculate simulated HI mass from plt
-        self.actual_delta_v = (self.bins[-1]-self.bins[0])/self.nBins
-        self.simu_real_mass_ratio = np.sum(self.n/1000)*self.actual_delta_v*2.356*np.power(10,5)*self.D*self.D/self.actualHIMass
         if clean == True:
             self.actual_delta_v = (self.bins[-1]-self.bins[0])/self.nBins
-            self.simu_real_mass_ratio = np.sum(self.n/1000)*self.actual_delta_v*2.356*np.power(10,5)*self.D*self.D/self.actualHIMass
+            self.simu_real_mass_ratio = np.sum(self.n/1000)*self.actual_delta_v*2.356*np.power(10,5)*self.kpcD*self.kpcD/(1000*1000*self.actualHIMass)
             print(self.simu_real_mass_ratio)
             plt.annotate(r'$\frac{M_{simu}}{M_{real}} = $'+str(self.simu_real_mass_ratio), xy=(0.05, 0.85), xycoords='axes fraction')
             if ratioCheck == True:
                 #Warning: ratio check should only be used with constant theta!
-                self.ratioDict[str(self.phi)] = self.simu_real_mass_ratio*100-100
+                self.ratioDict[str(self.phi)] = self.simu_real_mass_ratio-1
                 self.ratioCheckTheta = self.theta
         
         #fig, axs = plt.subplots(2, 1)
@@ -195,6 +204,13 @@ class subhalo:
             plt.clf()
 
     def drawRatioPlot(self):
+        #Warning: This function is not well implented for performance and should be redone
+        
+        #phi_12 = np.linspace(0, 2*np.pi, num = 12, endpoint = False)
+        try:
+            plt.clf()
+        except:
+            pass
         self.ratioNames = ['0',r'$\frac{\pi}{6}$',r'$\frac{\pi}{3}$',r'$\frac{\pi}{2}$',r'$\frac{2\pi}{3}$',r'$\frac{5\pi}{6}$',r'$\pi$', r'$\frac{7\pi}{6}$',r'$\frac{4\pi}{3}$',r'$\frac{3\pi}{2}$',r'$\frac{5\pi}{3}$',r'$\frac{11\pi}{6}$']
         self.ratioData = list(self.ratioDict.values())
         fig, ax = plt.subplots()

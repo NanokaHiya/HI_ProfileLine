@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #main.py
 #Generate HI profile line from different direction for subhalo in TNG simulation
 #Haiyin Song, 2021/11
