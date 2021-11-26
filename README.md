@@ -1,3 +1,15 @@
+<head>
+    <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+            inlineMath: [['$','$']]
+            }
+        });
+    </script>
+</head>
+
 # HI_ProfileLine
 Plot a HI profile line from TNG-100 simulation
 
@@ -7,6 +19,13 @@ Plot a HI profile line from TNG-100 simulation
  - [ ] Calculate the rotational matrix of subhalo
 
 # Logs
+
+## 11/26/2021
+Still dealing with previous problem. Some critical bug fixed, but result is still far from expectation. $frac{M_{simu}}{M_{real}}}$ seems like a sine wave and exceed 1, which is against prediction.
+
+Trying to get rotate_star working. I'm not sure about how it works.
+
+Remove class prototype 'coord' from subhalo.py (this class is probably not be used).
 
 ## 11/23/2021
 Luminosity distance & LOSVector now is different for every gas particle.

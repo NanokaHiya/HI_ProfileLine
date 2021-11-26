@@ -5,9 +5,11 @@
 #Haiyin Song, 2021/11
 import sys
 import os
-import subhalo
 import numpy as np
 from datetime import datetime
+
+import rotate_star
+import subhalo
 
 
 if len(sys.argv)!=3:
@@ -29,28 +31,22 @@ thetaArr = np.linspace(0,np.pi,num=5,endpoint=True)
 phiArr = np.linspace(0,2*np.pi,num=8,endpoint=False)
 
 
-def get26Pics(flag):
-    #if flag == False, all 32 line will be in a same plot
+def get26Pics(checkSymmetry):
+    #if checkSymmetry == False, all 32 line will be in a same plot
     runTime = datetime.now()
     counter = 0
     for i in thetaArr:
         for j in phiArr:
             counter += 1
             print(str(counter)+ ' of 26: theta = '+str("{:.2f}".format(i))+', phi = '+str("{:.2f}".format(j)) )
-            mysubhalo.drawPlot(i,j,flag)
+            mysubhalo.drawPlot(i,j,clean = checkSymmetry)
             #Time elapsed is ' + str(datetime.now()-runTime))
             runTime = datetime.now()
             if (i == 0)or(i == np.pi):
                 break
-    '''
-    if flag == True:
-        print('All 32 fishined. Total time: ' + str(datetime.now()-time0))
-    else:
-        print('Single finished. Total time: ' + str(datetime.now()-time0))
-    '''
-    return
 
 def checkRatio(theta = np.pi/2):
+    #Check M_simu/M_real ratio for a constant theta
     phi_12 = np.linspace(0, 2*np.pi, num = 12, endpoint = False)
     counter = 0
     for i in phi_12:
@@ -59,10 +55,27 @@ def checkRatio(theta = np.pi/2):
         mysubhalo.drawPlot(theta, i, ratioCheck = True)
     mysubhalo.drawRatioPlot()
 
+
+def checkRatio2():
+    #Check M_simu/M_real for 26Pics
+    counter = 0
+    for i in thetaArr:
+        for j in phiArr:
+            counter += 1
+            print(str(counter)+ ' of 26: theta = '+str("{:.2f}".format(i))+', phi = '+str("{:.2f}".format(j)) )
+            mysubhalo.drawPlot(i,j,center = True,ratioCheck = True)
+            #Time elapsed is ' + str(datetime.now()-runTime))
+            runTime = datetime.now()
+            if (i == 0)or(i == np.pi):
+                break
+    mysubhalo.drawRatioPlot()
+    
+
 if __name__ == "__main__":
-    get26Pics(True)
-    #get26Pics(False)
-    checkRatio()
+    #get26Pics(True)
+    get26Pics(False)
+    #checkRatio()
+    #checkRatio2()
     print('Job finished. Time elapsed: '+ str(datetime.now()-time0))
 
 
